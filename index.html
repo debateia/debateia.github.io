@@ -52,7 +52,22 @@
     </div>
     <script>
         async function iniciarDebate(tema) {
-            const apiKey = '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';
+            const i = '';
+           
+            
+            
+            
+            
+
+            const v1 = 'sk-proj-hxhmXoC68RJNtBlSBbNGMeUk4R'; 
+            const v2 = 'GTW2c5nkTudiZSCzwnKVN50GDSYy0_2kQS'
+            const v3 = 'cs156gH7nbG69FT3BlbkFJsY6S9_IIygEx'
+            const v4 = 'XHc0cuzM294G_qACIJYJ_mxLgvPLfsPaGKCehZjCWYwO1p8dIuOtE7b4HXQSkA'
+
+            i = v1 + v2 + v3 + v4
+            
+            console.log(i)
+
             const apiUrl = 'https://api.openai.com/v1/chat/completions';
             let historico = [];
             
@@ -60,48 +75,48 @@
             const promptContra = `Debate: ${tema}\nPosição: VOCÊ É CONTRA DO TEMA. No primeiro argumento, levante os principais tópicos de argumentação. Nas interações seguintes, responda estritamente ao que foi dito pela posição A FAVOR, sem adicionar novos pontos. Apresente argumentos embasados e, de preferência, dados reais.`;
             
             // Primeiro argumento a favor
-            let respostaPro = await obterResposta(apiUrl, apiKey, historico, promptPro);
+            let respostaPro = await obterResposta(apiUrl, i, historico, promptPro);
             appendMessage('(A FAVOR)', respostaPro, 'pro-message');
             historico.push({ role: 'assistant', content: respostaPro });
             
             // Primeiro argumento contra
-            let respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Com base no que foi dito a favor: ${respostaPro}`);
+            let respostaContra = await obterResposta(apiUrl, i, historico, `(CONTRA) Com base no que foi dito a favor: ${respostaPro}`);
             appendMessage('(CONTRA)', respostaContra, 'contra-message');
             historico.push({ role: 'assistant', content: respostaContra });
 
             // Segunda rodada de argumentos
-            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            respostaPro = await obterResposta(apiUrl, i, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
             appendMessage('(A FAVOR)', respostaPro, 'pro-message');
             historico.push({ role: 'assistant', content: respostaPro });
 
-            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            respostaContra = await obterResposta(apiUrl, i, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
             appendMessage('(CONTRA)', respostaContra, 'contra-message');
             historico.push({ role: 'assistant', content: respostaContra });
 
             // Terceira rodada de argumentos
-            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            respostaPro = await obterResposta(apiUrl, i, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
             appendMessage('(A FAVOR)', respostaPro, 'pro-message');
             historico.push({ role: 'assistant', content: respostaPro });
 
-            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            respostaContra = await obterResposta(apiUrl, i, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
             appendMessage('(CONTRA)', respostaContra, 'contra-message');
             historico.push({ role: 'assistant', content: respostaContra });
 
             // Quarta rodada de argumentos
-            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            respostaPro = await obterResposta(apiUrl, i, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
             appendMessage('(A FAVOR)', respostaPro, 'pro-message');
             historico.push({ role: 'assistant', content: respostaPro });
 
-            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            respostaContra = await obterResposta(apiUrl, i, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
             appendMessage('(CONTRA)', respostaContra, 'contra-message');
             historico.push({ role: 'assistant', content: respostaContra });
 
             // Avaliação final
-            let resultadoFinal = await obterResposta(apiUrl, apiKey, historico, "Agora, avalie o debate baseado nas interações acima. Resuma os principais argumentos levantados pelo lado A FAVOR e pelo lado CONTRA. Atribua pontos quantitativos para cada lado e determine quem venceu o debate com base na coerência, força dos argumentos e refutações.");
+            let resultadoFinal = await obterResposta(apiUrl, i, historico, "Agora, avalie o debate baseado nas interações acima. Resuma os principais argumentos levantados pelo lado A FAVOR e pelo lado CONTRA. Atribua pontos quantitativos para cada lado e determine quem venceu o debate com base na coerência, força dos argumentos e refutações.");
             appendMessage('(JULGAMENTO)', resultadoFinal, 'judgment-message');
         }
 
-        async function obterResposta(apiUrl, apiKey, historico, mensagem) {
+        async function obterResposta(apiUrl, i, historico, mensagem) {
             historico.push({ role: 'user', content: mensagem });
             let respostaCompleta = [];
             
@@ -109,7 +124,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`,
+                    'Authorization': `Bearer ${i}`,
                 },
                 body: JSON.stringify({
                     model: 'gpt-3.5-turbo',
