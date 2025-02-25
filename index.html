@@ -1,0 +1,168 @@
+<!DOCTYPE html> 
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debate IA</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0; }
+        #chat-container { width: 100vw; height: 100vh; background-color: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; }
+        #logo {border: 1px solid rgba(0, 0, 255, 0.562); background-color: #2943998e; color: white; padding: 15px; text-align: center; font-size: 1.5em; font-weight: bold; }
+        
+        
+        #messages { flex: 1; padding: 10px; overflow-y: auto; border-bottom: 1px solid #ddd; display: flex; flex-direction: column; }
+        .message { margin: 5px 0; padding: 10px; border-radius: 5px; max-width: 70%; }
+        .pro-message{border: 1px solid rgba(0, 0, 255, 0.562); color: black; background-color: #9bee5367; align-self: flex-end; }
+        .contra-message{border: 1px solid rgba(0, 0, 255, 0.562); color: black; background-color: #fd3b3b8c; align-self: flex-start; }
+       
+        .bot-message { background-color: #f1f1f1; align-self: flex-start; }
+
+        .judgment-message { background-color: #ffffff; border: 1px solid rgba(0, 0, 255, 0.562); align-self: center; text-align: center; }
+        #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; }
+        #modal-content { background: white; padding: 20px; border-radius: 10px; text-align: center; }
+        #modal input { width: 80%; padding: 10px; margin-top: 10px; 
+        }
+        #btn{
+            text-decoration: none;
+            padding: 20px;
+            background-color: #294399;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid white;
+            font-size: 20px;
+            margin-top: 20px;
+
+        }
+    </style>
+</head>
+<body>
+    <div id='modal'>
+        <div id='modal-content'>
+            <h2>Digite o tema do debate</h2>
+            <p>Aqui você pode gerar um debate entre duas IAs para levantar os principais tópicos da discussão e facilitar argumentação</p>
+            <input type='text' id='tema-input' placeholder='Digite o tema...'>
+            
+            <button id="btn" onclick='startDebate()'>Iniciar Debate</button>
+        </div>
+    </div>
+    <div id='chat-container' style='display: none;'>
+        <div id='logo'>Debate IA</div>
+        <div id='messages'></div>
+    </div>
+    <script>
+        async function iniciarDebate(tema) {
+            const apiKey = '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';
+            const apiUrl = 'https://api.openai.com/v1/chat/completions';
+            let historico = [];
+            
+            const promptPro = `Debate: ${tema}\nPosição: VOCÊ É A FAVOR DO TEMA. No primeiro argumento, levante os principais tópicos de argumentação. Nas interações seguintes, responda estritamente ao que foi dito pela posição CONTRA, sem adicionar novos pontos. Apresente argumentos embasados e, de preferência, dados reais.`;
+            const promptContra = `Debate: ${tema}\nPosição: VOCÊ É CONTRA DO TEMA. No primeiro argumento, levante os principais tópicos de argumentação. Nas interações seguintes, responda estritamente ao que foi dito pela posição A FAVOR, sem adicionar novos pontos. Apresente argumentos embasados e, de preferência, dados reais.`;
+            
+            // Primeiro argumento a favor
+            let respostaPro = await obterResposta(apiUrl, apiKey, historico, promptPro);
+            appendMessage('(A FAVOR)', respostaPro, 'pro-message');
+            historico.push({ role: 'assistant', content: respostaPro });
+            
+            // Primeiro argumento contra
+            let respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Com base no que foi dito a favor: ${respostaPro}`);
+            appendMessage('(CONTRA)', respostaContra, 'contra-message');
+            historico.push({ role: 'assistant', content: respostaContra });
+
+            // Segunda rodada de argumentos
+            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            appendMessage('(A FAVOR)', respostaPro, 'pro-message');
+            historico.push({ role: 'assistant', content: respostaPro });
+
+            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            appendMessage('(CONTRA)', respostaContra, 'contra-message');
+            historico.push({ role: 'assistant', content: respostaContra });
+
+            // Terceira rodada de argumentos
+            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            appendMessage('(A FAVOR)', respostaPro, 'pro-message');
+            historico.push({ role: 'assistant', content: respostaPro });
+
+            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            appendMessage('(CONTRA)', respostaContra, 'contra-message');
+            historico.push({ role: 'assistant', content: respostaContra });
+
+            // Quarta rodada de argumentos
+            respostaPro = await obterResposta(apiUrl, apiKey, historico, `(A FAVOR) Rebatendo o argumento contra: ${respostaContra}`);
+            appendMessage('(A FAVOR)', respostaPro, 'pro-message');
+            historico.push({ role: 'assistant', content: respostaPro });
+
+            respostaContra = await obterResposta(apiUrl, apiKey, historico, `(CONTRA) Rebatendo o argumento a favor: ${respostaPro}`);
+            appendMessage('(CONTRA)', respostaContra, 'contra-message');
+            historico.push({ role: 'assistant', content: respostaContra });
+
+            // Avaliação final
+            let resultadoFinal = await obterResposta(apiUrl, apiKey, historico, "Agora, avalie o debate baseado nas interações acima. Resuma os principais argumentos levantados pelo lado A FAVOR e pelo lado CONTRA. Atribua pontos quantitativos para cada lado e determine quem venceu o debate com base na coerência, força dos argumentos e refutações.");
+            appendMessage('(JULGAMENTO)', resultadoFinal, 'judgment-message');
+        }
+
+        async function obterResposta(apiUrl, apiKey, historico, mensagem) {
+            historico.push({ role: 'user', content: mensagem });
+            let respostaCompleta = [];
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: historico,
+                    stream: true,
+                }),
+            });
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                
+                for (let line of lines) {
+                    if (!line.startsWith('data:')) continue;
+                    const json = line.replace(/^data: /, '');
+                    if (json === '[DONE]') break;
+                    
+                    try {
+                        const parsedChunk = JSON.parse(json);
+                        if (parsedChunk.choices && parsedChunk.choices[0].delta.content) {
+                            respostaCompleta.push(parsedChunk.choices[0].delta.content);
+                        }
+                    } catch (error) {
+                        console.error("Erro ao processar JSON:", error);
+                    }
+                }
+            }
+            return respostaCompleta.join('');
+        }
+
+        function appendMessage(sender, message, senderClass) {
+            console.log(senderClass)
+            const messageContainer = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', senderClass);
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            messageContainer.appendChild(messageElement);
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+
+        function startDebate() {
+            const tema = document.getElementById('tema-input').value.trim();
+            if (!tema) return alert('Digite um tema!');
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('chat-container').style.display = 'flex';
+            iniciarDebate(tema);
+        }
+    </script>
+</body>
+</html>
